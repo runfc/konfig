@@ -1,0 +1,23 @@
+[package]
+name = "konfigm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# our libraries
+configc = { workspace = true }
+konfig-api = { workspace = true }
+
+# external
+env_logger = { workspace = true }
+futures = { version = "0.3.30" }
+futures-executor = { version = "0.3.30" }
+k8s-openapi = { workspace = true }
+kube = { workspace = true }
+kube-derive = { workspace = true }
+log = "0.4.25"
+schemars = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }

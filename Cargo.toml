@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = ["api", "konfigd", "konfigm"]
+
+[workspace.dependencies]
+configc = { path = "./configc" }
+konfig-api = { path = "./api" }
+
+env_logger = { version = "0.11.6" }
+k8s-openapi = { version = "0.24.0", features = ["latest"] }
+kube = { version = "0.98.0", features = ["client", "openssl-tls", "runtime", "derive"] }
+kube-derive = { version = "0.98.0" }
+log = { version = "0.4.25" }
+schemars = { version = "0.8.21" }
+serde = { version = "1.0.217", features = ["derive"]}
+serde_json = { version = "1.0.137" }
+thiserror = { version = "2.0.11" }
+tokio = { version = "1.40.0", features = ["full"] }

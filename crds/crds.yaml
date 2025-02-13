@@ -1,0 +1,151 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: konfignodes.runfc.br
+spec:
+  group: runfc.br
+  scope: Cluster
+  names:
+    kind: KonfigNode
+    plural: konfignodes
+    singular: konfignode
+    shortNames:
+      - knode
+      - knodes
+      - kfgnode
+      - kfgnodes
+  versions:
+    - name: v1alpha
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+
+            # statically typed configsets
+            spec:
+              type: object
+              properties:
+                configsets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      namespace:
+                        type: string
+                      name:
+                        type: string
+
+            # dynamically assigned configsets
+            configsets:
+              type: array
+              items:
+                type: object
+                properties:
+                  namespace:
+                    type: string
+                  name:
+                    type: string
+
+            status:
+              type: object
+              properties:
+                state:
+                  type: string
+                synced:
+                  type: boolean
+                failedReason:
+                  type: string
+                lastUpdated:
+                  type: integer
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: State
+          jsonPath: .status.state
+          type: string
+        - name: Synced
+          jsonPath: .status.synced
+          type: boolean
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+        - name: Updated
+          jsonPath: .status.lastUpdated
+          type: date
+
+
+# Defines the CRD resource to define a node profile
+#
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: konfigsets.runfc.br
+spec:
+  group: runfc.br
+  scope: Namespaced
+  names:
+    kind: KonfigSet
+    plural: konfigsets
+    singular: konfigset
+    shortNames:
+      - konfigsets
+      - konfsets
+      - kfg
+      - kfgs
+  versions:
+    - name: v1alpha
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+
+                selectors:
+                  type: array
+                  items:
+                    type: string
+
+                configurations:
+                  type: object
+                  properties:
+
+                    # sysctls
+                    sysctls:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          value:
+                            type: string
+
+                    # files
+                    files:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                          destination:
+                            type: string
+                          ensure:
+                            type: string
+                          mode:
+                            type: number
+                          content:
+                            type: string
+                          key:
+                            type: string
+                        x-kubernetes-validation:
+                          - rule: "self.starts_with('static://') && !('content' in self)"
+                            message: "static:// files required the content field to be defined"
