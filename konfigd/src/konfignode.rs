@@ -55,7 +55,7 @@ struct KnodeManagerCtx {
  *   spec:
  *     configuration:
  *      files:
- *       - source: k8s://static
+ *       - source: static://
  *         [ ... ]
  *         content: |
  *           This is the file content that we expecting.
@@ -87,8 +87,12 @@ fn read_static_content(file: api::KonfigFile) -> String {
  *         [ ... ]
  *
  */
-async fn read_content_configmap(file: &api::KonfigFile, ctx: Arc<KnodeManagerCtx>) -> Result<String, Error> {
-    let configmaps: KubeApi<KubeConfigMap> = KubeApi::namespaced(ctx.knode_mgr.kube_client.clone(), "default");
+async fn read_content_configmap(file: &api::KonfigFile, ctx: Arc<KnodeManagerCtx>, konfigset_namespace: &str) -> Result<String, Error> {
+    let namespace = match &file.namespace {
+	Some(ns) => ns.to_string(),
+	None => konfigset_namespace.to_string(),
+    };
+    let configmaps: KubeApi<KubeConfigMap> = KubeApi::namespaced(ctx.knode_mgr.kube_client.clone(), &namespace);
 
     let name = file.source.replace("k8s://configmap/", "");
     let key = match file.key.clone() {
@@ -101,14 +105,14 @@ async fn read_content_configmap(file: &api::KonfigFile, ctx: Arc<KnodeManagerCtx
 
     let content = match configmaps.get(&name).await {
 	Err(_) => {
-	    let errmsg = format!("Unable to find Configmap with name: {}", name);
+	    let errmsg = format!("Unable to find Configmap with name: {}/{}", namespace, name);
 	    return Err(Error::KonfigError(errmsg));
 	},
 	Ok(configmap) => {
 	    let data = match configmap.data {
 		Some(data) => data,
 		None => {
-		    let errmsg = format!("Expected .data inside configmap/{}, but couldn't find one?", name);
+		    let errmsg = format!("Expected .data inside configmap {}/{}, but couldn't find one?", namespace, name);
 		    return Err(Error::KonfigError(errmsg));
 		}
 	    };
@@ -116,7 +120,7 @@ async fn read_content_configmap(file: &api::KonfigFile, ctx: Arc<KnodeManagerCtx
 	    let content = match data.get(&key) {
 		Some(content) => content,
 		None => {
-		    let errmsg = format!("The configmap '{}' does not contain '{}' inside its data", name, key);
+		    let errmsg = format!("The configmap '{}/{}' does not contain '{}' inside its data", namespace, name, key);
 		    return Err(Error::KonfigError(errmsg));
 		}
 	    };
@@ -127,10 +131,10 @@ async fn read_content_configmap(file: &api::KonfigFile, ctx: Arc<KnodeManagerCtx
     Ok(content)
 }
 
-async fn file_content_from(file: api::KonfigFile, ctx: Arc<KnodeManagerCtx>) -> Result<String, Error> {
+async fn file_content_from(file: api::KonfigFile, ctx: Arc<KnodeManagerCtx>, konfigset_namespace: &str) -> Result<String, Error> {
     let content = match file.source.as_str() {
 	src if src.starts_with("static://") => read_static_content(file),
-	src if src.starts_with("k8s://configmap") => read_content_configmap(&file, ctx.clone()).await?,
+	src if src.starts_with("k8s://configmap") => read_content_configmap(&file, ctx.clone(), konfigset_namespace).await?,
 
 	/*
 	 * When reaching here, it means none of the k8s:// above
@@ -154,7 +158,8 @@ async fn file_content_from(file: api::KonfigFile, ctx: Arc<KnodeManagerCtx>) -> 
 
 async fn drifted_configs(konfigset: &api::KonfigSet, ctx: Arc<KnodeManagerCtx>) -> Vec<Box<dyn configc::Manager + Send>> {
     let mut drifted: Vec<Box<dyn configc::Manager + Send>> = Vec::new();
-    let name = konfigset.metadata.name.clone().expect("");
+    let name = konfigset.metadata.name.clone().expect("Unable to read konfigset name");
+    let namespace = konfigset.metadata.namespace.clone().expect("Unable to read konfigset namespace");
     let me = ctx.knode_mgr.name.as_str();
 
     let configs = match &konfigset.spec.configurations {
@@ -194,7 +199,7 @@ async fn drifted_configs(konfigset: &api::KonfigSet, ctx: Arc<KnodeManagerCtx>) 
 		Some(mode) => mode,
 		None => 0644,
 	    };
-	    let content = match file_content_from(file_opt.clone(), ctx.clone()).await {
+	    let content = match file_content_from(file_opt.clone(), ctx.clone(), &namespace).await {
 		Ok(content) => content,
 		Err(err) => {
 		    log::error!("Unable to get file content from {:?}, error: {}", file_opt, err);
