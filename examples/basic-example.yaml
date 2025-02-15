@@ -17,6 +17,7 @@ spec:
         destination: /tmp/motd
         mode: 0644
         ensure: exists
+        namespace: configs
       - source: k8s://configmap/hosts
         destination: /tmp/hosts
         mode: 0600
@@ -47,13 +48,14 @@ spec:
         destination: /tmp/basic
         mode: 0644
         ensure: exists
+        namespace: configs
 
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: motd
-  namespace: default
+  namespace: configs
 data:
   content: |
     Welcome to the Konfig Managed Machine

@@ -146,6 +146,8 @@ spec:
                             type: string
                           key:
                             type: string
+                          namespace:
+                            type: string
                         x-kubernetes-validation:
                           - rule: "self.starts_with('static://') && !('content' in self)"
                             message: "static:// files required the content field to be defined"

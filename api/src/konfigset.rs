@@ -26,6 +26,8 @@ pub struct KonfigFile {
     pub key: Option<String>,
 
     pub content: Option<String>,
+
+    pub namespace: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, JsonSchema)]
