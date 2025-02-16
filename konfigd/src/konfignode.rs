@@ -177,12 +177,12 @@ async fn drifted_configs(konfigset: &api::KonfigSet, ctx: Arc<KnodeManagerCtx>) 
 	    let sysctl = configc::Sysctl::new(sysctl_opt.name.as_str(), sysctl_opt.value.as_str());
 	    log::debug!("Managing sysctl: {:?}", sysctl);
 
-	    match sysctl.has_drifted() {
+	    match sysctl.is_different() {
 		Err(err) => {
 		    log::error!("Unable to check state of sysctl, error: {}", err);
 		},
-		Ok(has_drifted) => {
-		    if has_drifted {
+		Ok(is_different) => {
+		    if is_different {
 			drifted.push(Box::new(sysctl));
 		    }
 		}
@@ -214,12 +214,12 @@ async fn drifted_configs(konfigset: &api::KonfigSet, ctx: Arc<KnodeManagerCtx>) 
 
 	    log::debug!("Managing file: {:?}", file_opt);
 
-	    match file.has_drifted() {
+	    match file.is_different() {
 		Err(err) => {
 		    log::error!("Unable to check the state of file, error: {}", err);
 		},
-		Ok(has_drifted) => {
-		    if has_drifted {
+		Ok(is_different) => {
+		    if is_different {
 			drifted.push(Box::new(file));
 		    }
 		}
