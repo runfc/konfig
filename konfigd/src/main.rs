@@ -3,9 +3,20 @@ mod konfignode;
 use konfignode::KNodeMgr;
 
 use log;
+use clap::Parser;
 use gethostname::gethostname;
 use kube::Client as KubeClient;
 use kube::runtime::watcher as kube_watcher;
+
+/// Konfigd - Konfig daemon running on managed machine
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+
+    /// Defines the knode name to use when register in control plane (default: system hostname)
+    #[arg(short, long)]
+    knodename: Option<String>,
+}
 
 async fn register(me: &KNodeMgr) {
     log::info!("Registering myself ...");
@@ -47,8 +58,12 @@ fn get_node_name(hostname: Option<String>) -> String {
 #[tokio::main]
 async fn main() -> Result<(), kube_watcher::Error> {
     env_logger::init();
+    let args = Args::parse();
 
-    let name = get_node_name(None);
+    let name = match args.knodename {
+	Some(name) => name,
+	None => get_node_name(None),
+    };
     let kube_client = KubeClient::try_default().await.unwrap();
 
     log::info!("starting konfigd for {}", name);
