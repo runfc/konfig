@@ -1,0 +1,15 @@
+apiVersion: runfc.br/v1alpha
+kind: KonfigSet
+metadata:
+  name: server
+  namespace: default
+spec:
+  selectors:
+    - konfignodes.runfc.br/name=pi
+  configurations:
+    files:
+      - source: static://
+        destination: /tmp/hello
+        mode: 0644
+        content: |
+          Hello World - This file is managed by konfigc

@@ -11,9 +11,7 @@ The system is split into two main programs:
   - *konfigd* - which is the daemon that will be running on every konfig-managed node
   - *konfigm* - program responsible for managing konfig-managed nodes and configuration sets
 
-
-
-[![asciicast](https://asciinema.org/a/wau9bOpyFoPoSUHW4Qdk3d4rH.png)](https://asciinema.org/a/wau9bOpyFoPoSUHW4Qdk3d4rH)
+[![asciicast](https://asciinema.org/a/zIYe4vlSEsDKS94KX7OnJp4kA.png)](https://asciinema.org/a/zIYe4vlSEsDKS94KX7OnJp4kA)
 
 ## Hacking
 

@@ -1,0 +1,32 @@
+---
+apiVersion: runfc.br/v1alpha
+kind: KonfigSet
+metadata:
+  name: server
+  namespace: default
+spec:
+  selectors:
+    - konfignodes.runfc.br/name=pi
+  configurations:
+    sysctls:
+      - name: fs.nr_open
+        value: "1048580"
+    files:
+      - source: static://
+        destination: /tmp/motd
+        mode: 0644
+        content: |
+          Server is monitored 2/7, so be sure to made changes only outside of that hours range
+      - source: k8s://configmap/motd
+        destination: /tmp/config
+        mode: 0644
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: motd
+  namespace: default
+data:
+  content: |
+    This is a configuration file
