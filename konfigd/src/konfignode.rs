@@ -296,7 +296,9 @@ impl KNodeMgr {
 	);
 
 	// return the reflector future, to be used by tokio::select!
-	reflector.applied_objects()
+	reflector
+	    .default_backoff()
+	    .applied_objects()
 	    .for_each(|cfg| {
 		log::debug!("Received an update for: {:?}", cfg);
 

@@ -97,6 +97,7 @@ impl KonfigManager {
 
 	let watcher = kube_watcher(self.konfig_api.clone(), KubeWatcherConfig::default());
 	kube_reflector::reflector(writer, watcher)
+	    .default_backoff()
 	    .applied_objects()
 	    .for_each(|obj| {
 		log::debug!("Received an update for {:?}", obj);
